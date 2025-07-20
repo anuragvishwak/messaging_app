@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import ChatSideNavbar from "./ChatSideNavbar";
-import { addDoc, collection, getDocs, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  serverTimestamp,
+} from "firebase/firestore";
 import { database } from "./FirebaseConfig";
 import { FaUser } from "react-icons/fa";
 import { IoSendSharp } from "react-icons/io5";
@@ -15,8 +20,6 @@ function MainChat() {
   const [renderMessages, setrenderMessages] = useState([]);
   const [migratingUser, setmigratingUser] = useState([]);
   const [selectedUser, setselectedUser] = useState("");
-
-  console.log("finding selected user", selectedUser);
 
   async function creatingMessages() {
     try {
@@ -35,14 +38,31 @@ function MainChat() {
 
   async function renderingMessages() {
     const taskDetails = await getDocs(collection(database, "message_database"));
-    let multipleArray = taskDetails.docs.map((doc) => ({
+    let allMessages = taskDetails.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
-    const filteredArray = multipleArray.filter((task) => task.email === email);
-    const reversedArray = filteredArray.reverse();
-    setrenderMessages(multipleArray);
-    renderingUser();
+
+    console.log("email from the local storage", email);
+    console.log("receiver from the local storage", receiver);
+    console.log(
+      "sender from the database",
+      allMessages.map((msg) => msg.email)
+    );
+
+     console.log(
+      "receiver from the database",
+      allMessages.map((msg) => msg.receiver)
+    );
+   const filteredMessages = allMessages.filter(
+  (msg) =>
+    (msg.email === email && msg.receiver === receiver) ||
+    (msg.email === receiver && msg.receiver === email)
+);
+
+    console.log(filteredMessages, "contains only the selected user messages");
+    const reversedArray = filteredMessages.reverse();
+    setrenderMessages(filteredMessages);
   }
 
   async function renderingUser() {
@@ -68,7 +88,7 @@ function MainChat() {
         setselectedUser={setselectedUser}
         migratingUser={migratingUser}
       />
-      {selectedUser ? (
+      {email ? (
         <div className="flex flex-col w-full h-screen">
           <div className="">
             {gettingUsers
@@ -104,7 +124,10 @@ function MainChat() {
                 >
                   <p className="text-sm">{message.message}</p>
                   <div className="flex justify-end">
-                    <p className="text-sm font-gray-400"> {message.timestamp?.toDate().toLocaleTimeString()}</p>
+                    <p className="text-sm font-gray-400">
+                      {" "}
+                      {message.timestamp?.toDate().toLocaleTimeString()}
+                    </p>
                   </div>
                 </div>
               </div>

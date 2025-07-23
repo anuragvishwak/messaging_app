@@ -10,6 +10,7 @@ import { database } from "./FirebaseConfig";
 import { FaUser } from "react-icons/fa";
 import { IoSendSharp } from "react-icons/io5";
 import { BiMessage } from "react-icons/bi";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 function MainChat() {
   const email = JSON.parse(localStorage.getItem("user"))?.trim();
@@ -20,6 +21,7 @@ function MainChat() {
   const [renderMessages, setrenderMessages] = useState([]);
   const [migratingUser, setmigratingUser] = useState([]);
   const [selectedUser, setselectedUser] = useState("");
+  const [openingActionBlock, setopeningActionBlock] = useState(false);
 
   async function creatingMessages() {
     try {
@@ -31,6 +33,8 @@ function MainChat() {
       });
       renderingUser();
       alert("Message sent successfully!");
+      collectingMessages("");
+      renderingMessages();
     } catch (error) {
       console.error("Error adding task: ", error);
     }
@@ -43,26 +47,19 @@ function MainChat() {
       ...doc.data(),
     }));
 
-    console.log("email from the local storage", email);
-    console.log("receiver from the local storage", receiver);
-    console.log(
-      "sender from the database",
-      allMessages.map((msg) => msg.email)
+    const filteredMessages = allMessages.filter(
+      (msg) =>
+        (msg.email === email && msg.receiver === receiver) ||
+        (msg.email === receiver && msg.receiver === email)
     );
 
-     console.log(
-      "receiver from the database",
-      allMessages.map((msg) => msg.receiver)
-    );
-   const filteredMessages = allMessages.filter(
-  (msg) =>
-    (msg.email === email && msg.receiver === receiver) ||
-    (msg.email === receiver && msg.receiver === email)
-);
+    const sortedMessages = filteredMessages.sort((a, b) => {
+      const timeA = a.time?.toDate?.() || new Date(0);
+      const timeB = b.time?.toDate?.() || new Date(0);
+      return timeA - timeB;
+    });
 
-    console.log(filteredMessages, "contains only the selected user messages");
-    const reversedArray = filteredMessages.reverse();
-    setrenderMessages(filteredMessages);
+    setrenderMessages(sortedMessages);
   }
 
   async function renderingUser() {
@@ -80,7 +77,7 @@ function MainChat() {
   useEffect(() => {
     renderingUser();
     renderingMessages();
-  }, []);
+  }, [setselectedUser, email, receiver]);
 
   return (
     <div className="flex">
@@ -92,16 +89,32 @@ function MainChat() {
         <div className="flex flex-col w-full h-screen">
           <div className="">
             {gettingUsers
-              .filter((user) => user.email === selectedUser)
+              .filter((user) => user.email === receiver)
               .map((user) => (
-                <div className="flex items-center space-x-2 p-4 border-b w-full border-gray-300">
-                  <FaUser
-                    size={35}
-                    className="bg-blue-500 rounded-full p-1.5 text-white"
-                  />
+                <div className="flex items-center justify-between p-2 border-b w-full border-gray-300">
+                  <div className="flex items-center space-x-2">
+                    <FaUser
+                      size={35}
+                      className="bg-blue-500 rounded-full p-1.5 text-white"
+                    />
+                    <div>
+                      <p className="text-xl font-bold">{user.user_name}</p>
+                      <p className="text-sm">{user.email}</p>
+                    </div>
+                  </div>
+
                   <div>
-                    <p className="text-xl font-bold">{user.user_name}</p>
-                    <p className="text-sm">{user.email}</p>
+                    <button
+                      onClick={() => setopeningActionBlock(!openingActionBlock)}
+                    >
+                      <BsThreeDotsVertical size={20} />
+                    </button>
+                    {openingActionBlock && (
+                      <div className="bg-white shadow-md flex flex-col rounded p-3 absolute border right-2 mt-2">
+                        <button>Block User</button>
+                        <button>Report User</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -116,17 +129,24 @@ function MainChat() {
                 }`}
               >
                 <div
-                  className={`max-w-[70%] p-3 rounded-lg shadow-md ${
+                  className={`max-w-[40%] p-3 text-justify rounded-lg shadow-md ${
                     message.email === email
                       ? "bg-blue-500 text-white"
                       : "bg-white  text-black"
                   }`}
                 >
                   <p className="text-sm">{message.message}</p>
-                  <div className="flex justify-end">
-                    <p className="text-sm font-gray-400">
-                      {" "}
-                      {message.timestamp?.toDate().toLocaleTimeString()}
+                  <div className="flex mt-3 justify-end">
+                    <p
+                      className={`text-[12px] ${
+                        message.email === email ? "text-white" : "text-gray-400"
+                      }`}
+                    >
+                      {message.time?.toDate().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -134,20 +154,22 @@ function MainChat() {
             ))}
           </div>
 
-          <div className="flex border-t shadow items-center space-x-2 p-4">
-            <input
-              onChange={(e) => setcollectingMessages(e.target.value)}
-              placeholder="Write a message..."
-              className="w-full border  border-gray-400 rounded-full p-2"
-            ></input>
-            <button
-              onClick={() => {
-                creatingMessages();
-              }}
-              className="text-white bg-blue-500 p-2 rounded-full"
-            >
-              <IoSendSharp size={25} />
-            </button>
+          <div className="border-t shadow items-center space-x-2 p-4">
+            <div className="border p-1 flex items-center border-gray-400 rounded-full">
+              <input
+                onChange={(e) => setcollectingMessages(e.target.value)}
+                placeholder="Write a message..."
+                className="w-full py-1 mx-3"
+              ></input>
+              <button
+                onClick={() => {
+                  creatingMessages();
+                }}
+                className="text-white bg-blue-500 p-2 rounded-full"
+              >
+                <IoSendSharp size={25} />
+              </button>
+            </div>
           </div>
         </div>
       ) : (

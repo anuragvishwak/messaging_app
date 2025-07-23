@@ -1,7 +1,9 @@
 import React from "react";
 import { FaUser } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function ChatSideNavbar({ migratingUser, setselectedUser }) {
+  const navigate = useNavigate();
   const email = JSON.parse(localStorage.getItem("user"))?.trim();
   const findingSingleUser = migratingUser.find((user) => user.email === email);
 
@@ -19,20 +21,35 @@ function ChatSideNavbar({ migratingUser, setselectedUser }) {
             </p>
           </div>
         </div>
-        {migratingUser
+      <div>
+          {migratingUser
           .filter((user) => user.email !== email)
           .map((user) => (
             <>
               <div
+              className="border-b border-gray-300 py-3"
                 onClick={() => {
                   setselectedUser(user.email);
-                  localStorage.setItem("receiver", user.email)
+                  localStorage.setItem("receiver", user.email);
                 }}
               >
-                <p>{user.user_name}</p>
+                <p className="capitalize">{user.user_name}</p>
               </div>
             </>
           ))}
+      </div>
+
+        <div className="flex mt-60">
+          <button
+            onClick={() => {
+              navigate("/");
+              localStorage.clear();
+            }}
+            className="text-red-500 font-semibold"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </div>
   );

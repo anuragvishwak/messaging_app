@@ -21,6 +21,7 @@ function MainChat() {
   const [renderMessages, setrenderMessages] = useState([]);
   const [migratingUser, setmigratingUser] = useState([]);
   const [selectedUser, setselectedUser] = useState("");
+  const [selectedGroup, setselectedGroup] = useState("");
   const [openingActionBlock, setopeningActionBlock] = useState(false);
 
   async function creatingMessages() {
@@ -84,6 +85,7 @@ function MainChat() {
       <ChatSideNavbar
         setselectedUser={setselectedUser}
         migratingUser={migratingUser}
+        setselectedGroup={setselectedGroup}
       />
       {email ? (
         <div className="flex flex-col w-full h-screen">

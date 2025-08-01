@@ -7,7 +7,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { database } from "./FirebaseConfig";
-import { FaUser, FaUsers } from "react-icons/fa";
+import { FaArrowLeft, FaUser, FaUsers } from "react-icons/fa";
 import { IoSendSharp } from "react-icons/io5";
 import { BiMessage } from "react-icons/bi";
 import { BsThreeDotsVertical } from "react-icons/bs";
@@ -128,14 +128,19 @@ function MainChat() {
                     key={user.email}
                     className="flex items-center justify-between p-2 border-b w-full border-gray-300"
                   >
-                    <div className="flex items-center space-x-2">
-                      <FaUser
-                        size={35}
-                        className="bg-blue-500 rounded-full p-1.5 text-white"
-                      />
-                      <div>
-                        <p className="text-xl font-bold">{user.user_name}</p>
-                        <p className="text-sm">{user.email}</p>
+                    <div className="flex items-center">
+                      <button className="px-1.5 sm:px-3">
+                        <FaArrowLeft className="" />
+                      </button>
+                      <div className="flex items-center space-x-2">
+                        <FaUser
+                          size={35}
+                          className="bg-blue-500 rounded-full p-1.5 text-white"
+                        />
+                        <div>
+                          <p className="text-xl font-bold">{user.user_name}</p>
+                          <p className="text-sm">{user.email}</p>
+                        </div>
                       </div>
                     </div>
                     <div>
@@ -178,7 +183,7 @@ function MainChat() {
                 ))}
           </div>
 
-          <div className="flex-1 bg-gray-100 overflow-y-auto p-4 space-y-4">
+          <div className="flex flex-col h-screen max-h-screen p-5 bg-gray-50">
             {renderMessages.map((message) => {
               const sender =
                 currentChatChannel === "group"
@@ -206,7 +211,7 @@ function MainChat() {
                           {sender.user_name}
                         </p>
                       )}
-                      
+
                     <p className="text-sm">{message.message}</p>
                     <div className="flex mt-3 justify-end">
                       <p

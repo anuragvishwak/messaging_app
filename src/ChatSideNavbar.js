@@ -7,7 +7,7 @@ import { motion, useIsomorphicLayoutEffect } from "framer-motion";
 import { collection, getDocs } from "firebase/firestore";
 import { database } from "./FirebaseConfig";
 
-function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup }) {
+function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setcurrentChatChannel}) {
   const navigate = useNavigate();
   const email = JSON.parse(localStorage.getItem("user"))?.trim();
   const findingSingleUser = migratingUser.find((user) => user.email === email);
@@ -15,6 +15,7 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup }) {
   const [openingCreateGroupForm, setopeningCreateGroupForm] = useState(false);
   const [renderingGroupDetails, setrenderingGroupDetails] = useState([]);
   const [renderingGroupMessages, setrenderingGroupMessages] = useState([]);
+
 
   async function gatheringGroupDetails() {
     const taskDetails = await getDocs(collection(database, "group_database"));
@@ -47,11 +48,7 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup }) {
 
   return (
     <div>
-      <div className="sm:hidden">
-        <button>
-          <FaBars />
-        </button>
-      </div>
+      
       <div className="p-3 hidden sm:block w-56 border-r h-screen">
         <div className="flex items-center pb-3 justify-between border-b border-gray-300">
           <p className="font-semibold">Welcome</p>
@@ -106,6 +103,7 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup }) {
               onClick={() => {
                 setselectedUser("");
                 setselectedGroup(group.id);
+                setcurrentChatChannel('group');
                 localStorage.setItem("selectedGroup", group.id);
               }}
               className="flex py-3 border-b border-gray-300 items-center justify-between"
@@ -123,6 +121,7 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup }) {
                   onClick={() => {
                     setselectedUser(user.email);
                     setselectedGroup("");
+                    setcurrentChatChannel('single');
                     localStorage.setItem("receiver", user.email);
                   }}
                 >

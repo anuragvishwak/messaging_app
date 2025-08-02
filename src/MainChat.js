@@ -50,35 +50,51 @@ function MainChat() {
     }
   }
 
-  async function renderingMessages() {
-    const collectionName =
-      currentChatChannel === "group"
-        ? "group_message_database"
-        : "message_database";
+ async function renderingMessages() {
+  const collectionName =
+    currentChatChannel === "group"
+      ? "group_message_database"
+      : "message_database";
 
-    const taskDetails = await getDocs(collection(database, collectionName));
-    let allMessages = taskDetails.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+  const taskDetails = await getDocs(collection(database, collectionName));
+  let allMessages = taskDetails.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 
-    const filteredMessages =
-      currentChatChannel === "group"
-        ? allMessages.filter((msg) => msg.receiver === selectedGroup)
-        : allMessages.filter(
-            (msg) =>
-              (msg.email === email && msg.receiver === receiver) ||
-              (msg.email === receiver && msg.receiver === email)
-          );
+  let filteredMessages = [];
 
-    const sortedMessages = filteredMessages.sort((a, b) => {
-      const timeA = a.time?.toDate?.() || new Date(0);
-      const timeB = b.time?.toDate?.() || new Date(0);
-      return timeA - timeB;
-    });
+  if (currentChatChannel === "group") {
+    const selectedGroupDetails = renderingGroupDetails.find(
+      (group) => group.id === selectedGroup
+    );
 
-    setrenderMessages(sortedMessages);
+    const isMember = selectedGroupDetails?.groupMembers?.includes(email);
+
+    if (isMember) {
+      filteredMessages = allMessages.filter(
+        (msg) => msg.receiver === selectedGroup
+      );
+    } else {
+      filteredMessages = [];
+    }
+  } else {
+    filteredMessages = allMessages.filter(
+      (msg) =>
+        (msg.email === email && msg.receiver === receiver) ||
+        (msg.email === receiver && msg.receiver === email)
+    );
   }
+
+  const sortedMessages = filteredMessages.sort((a, b) => {
+    const timeA = a.time?.toDate?.() || new Date(0);
+    const timeB = b.time?.toDate?.() || new Date(0);
+    return timeA - timeB;
+  });
+
+  setrenderMessages(sortedMessages);
+}
+
 
   async function renderingUser() {
     const userDocs = await getDocs(collection(database, "user_database"));
@@ -93,9 +109,11 @@ function MainChat() {
       ...doc.data(),
     }));
 
+    const filteringUsers  = groups.filter(group => group.groupMembers.includes(email));
+
     setgettingUsers(users);
     setmigratingUser(users);
-    setrenderingGroupDetails(groups);
+    setrenderingGroupDetails(filteringUsers);
   }
 
   useEffect(() => {
@@ -115,7 +133,6 @@ function MainChat() {
 
       {email ? (
         <div className="flex flex-col w-full h-screen">
-          {/* Header */}
           <div>
             {currentChatChannel === "single" &&
               gettingUsers

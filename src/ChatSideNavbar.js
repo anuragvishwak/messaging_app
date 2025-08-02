@@ -24,8 +24,11 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
       ...doc.data(),
     }));
 
-    const filteredArray = multipleArray.filter((task) => task.email === email);
-    setrenderingGroupDetails(multipleArray);
+   const filteredGroups = multipleArray.filter((group) =>
+    group.groupMembers.includes(email)
+  );
+
+  setrenderingGroupDetails(filteredGroups);
   }
 
   async function gatheringGroupMessages() {

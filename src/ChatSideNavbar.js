@@ -6,8 +6,15 @@ import CreateGroupForm from "./CreateGroupForm";
 import { motion, useIsomorphicLayoutEffect } from "framer-motion";
 import { collection, getDocs } from "firebase/firestore";
 import { database } from "./FirebaseConfig";
+import { BiLogOut } from "react-icons/bi";
 
-function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setcurrentChatChannel}) {
+function ChatSideNavbar({
+  migratingUser,
+  setselectedUser,
+  setselectedGroup,
+  setcurrentChatChannel,
+  sethandlingResponsive,
+}) {
   const navigate = useNavigate();
   const email = JSON.parse(localStorage.getItem("user"))?.trim();
   const findingSingleUser = migratingUser.find((user) => user.email === email);
@@ -16,7 +23,6 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
   const [renderingGroupDetails, setrenderingGroupDetails] = useState([]);
   const [renderingGroupMessages, setrenderingGroupMessages] = useState([]);
 
-
   async function gatheringGroupDetails() {
     const taskDetails = await getDocs(collection(database, "group_database"));
     let multipleArray = taskDetails.docs.map((doc) => ({
@@ -24,11 +30,11 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
       ...doc.data(),
     }));
 
-   const filteredGroups = multipleArray.filter((group) =>
-    group.groupMembers.includes(email)
-  );
+    const filteredGroups = multipleArray.filter((group) =>
+      group.groupMembers.includes(email)
+    );
 
-  setrenderingGroupDetails(filteredGroups);
+    setrenderingGroupDetails(filteredGroups);
   }
 
   async function gatheringGroupMessages() {
@@ -51,11 +57,11 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
 
   return (
     <div>
-      
-      <div className="p-3 hidden sm:block w-56 border-r h-screen">
+      <div className="p-3 border-r h-screen">
         <div className="flex items-center pb-3 justify-between border-b border-gray-300">
           <p className="font-semibold">Welcome</p>
-          <button
+          <div className="flex items-center space-x-1">
+            <button
             onClick={() => {
               setopeningAdditionalBlock(!openingAdditionalBlock);
             }}
@@ -63,6 +69,16 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
           >
             <IoCreateOutline size={20} />
           </button>
+            <button
+            onClick={() => {
+              navigate("/");
+              localStorage.clear();
+            }}
+            className="text-red-500 font-semibold"
+          >
+            <BiLogOut  size={23}/>
+          </button>
+          </div>
         </div>
         {openingAdditionalBlock && (
           <motion.div
@@ -101,13 +117,17 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
           </div>
         </div>
         <div>
+          <p className="font-bold text-xl text-center py-5 border-b border-gray-3">YOUR CHATS</p>
+        </div>
+        <div>
           {renderingGroupDetails.map((group) => (
             <div
               onClick={() => {
                 setselectedUser("");
                 setselectedGroup(group.id);
-                setcurrentChatChannel('group');
+                setcurrentChatChannel("group");
                 localStorage.setItem("selectedGroup", group.id);
+                sethandlingResponsive("user");
               }}
               className="flex py-3 border-b border-gray-300 items-center justify-between"
             >
@@ -124,8 +144,9 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
                   onClick={() => {
                     setselectedUser(user.email);
                     setselectedGroup("");
-                    setcurrentChatChannel('single');
+                    setcurrentChatChannel("single");
                     localStorage.setItem("receiver", user.email);
+                    sethandlingResponsive("user");
                   }}
                 >
                   <p className="capitalize">{user.user_name}</p>
@@ -134,17 +155,7 @@ function ChatSideNavbar({ migratingUser, setselectedUser, setselectedGroup, setc
             ))}
         </div>
 
-        <div className="flex mt-60">
-          <button
-            onClick={() => {
-              navigate("/");
-              localStorage.clear();
-            }}
-            className="text-red-500 font-semibold"
-          >
-            Logout
-          </button>
-        </div>
+       
       </div>
 
       {openingCreateGroupForm && (

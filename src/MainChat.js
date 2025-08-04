@@ -4,6 +4,9 @@ import {
   addDoc,
   collection,
   getDocs,
+  onSnapshot,
+  orderBy,
+  query,
   serverTimestamp,
 } from "firebase/firestore";
 import { database } from "./FirebaseConfig";
@@ -12,7 +15,7 @@ import { IoSendSharp } from "react-icons/io5";
 import { BiMessage } from "react-icons/bi";
 import { BsThreeDotsVertical } from "react-icons/bs";
 
-function MainChat() {
+function MainChat({setselectedGroup, currentChatChannel, sethandlingResponsive, selectedGroup, selectedUser, setmigratingUser}) {
   const email = JSON.parse(localStorage.getItem("user"))?.trim();
   const receiver = localStorage.getItem("receiver");
   const selectedGroupId = localStorage.getItem("selectedGroup");
@@ -20,14 +23,10 @@ function MainChat() {
   const [gettingUsers, setgettingUsers] = useState([]);
   const [collectingMessages, setcollectingMessages] = useState("");
   const [renderMessages, setrenderMessages] = useState([]);
-  const [migratingUser, setmigratingUser] = useState([]);
   const [renderingGroupDetails, setrenderingGroupDetails] = useState([]);
-  const [selectedUser, setselectedUser] = useState(receiver || "");
-  const [selectedGroup, setselectedGroup] = useState(selectedGroupId || "");
+  
   const [openingActionBlock, setopeningActionBlock] = useState(false);
-  const [currentChatChannel, setcurrentChatChannel] = useState(
-    currentChannelFromStorage || "single"
-  );
+  
 
   async function creatingMessages() {
     try {
@@ -50,51 +49,51 @@ function MainChat() {
     }
   }
 
- async function renderingMessages() {
-  const collectionName =
-    currentChatChannel === "group"
-      ? "group_message_database"
-      : "message_database";
+  function renderingMessages() {
+    const collectionName =
+      currentChatChannel === "group"
+        ? "group_message_database"
+        : "message_database";
 
-  const taskDetails = await getDocs(collection(database, collectionName));
-  let allMessages = taskDetails.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+    const q = query(collection(database, collectionName), orderBy("time"));
 
-  let filteredMessages = [];
+    return onSnapshot(q, (snapshot) => {
+      const allMessages = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-  if (currentChatChannel === "group") {
-    const selectedGroupDetails = renderingGroupDetails.find(
-      (group) => group.id === selectedGroup
-    );
+      let filteredMessages = [];
 
-    const isMember = selectedGroupDetails?.groupMembers?.includes(email);
+      if (currentChatChannel === "group") {
+        const selectedGroupDetails = renderingGroupDetails.find(
+          (group) => group.id === selectedGroup
+        );
 
-    if (isMember) {
-      filteredMessages = allMessages.filter(
-        (msg) => msg.receiver === selectedGroup
-      );
-    } else {
-      filteredMessages = [];
-    }
-  } else {
-    filteredMessages = allMessages.filter(
-      (msg) =>
-        (msg.email === email && msg.receiver === receiver) ||
-        (msg.email === receiver && msg.receiver === email)
-    );
+        const isMember = selectedGroupDetails?.groupMembers?.includes(email);
+
+        if (isMember) {
+          filteredMessages = allMessages.filter(
+            (msg) => msg.receiver === selectedGroup
+          );
+        }
+      } else {
+        filteredMessages = allMessages.filter(
+          (msg) =>
+            (msg.email === email && msg.receiver === receiver) ||
+            (msg.email === receiver && msg.receiver === email)
+        );
+      }
+
+      const sortedMessages = filteredMessages.sort((a, b) => {
+        const timeA = a.time?.toDate?.() || new Date(0);
+        const timeB = b.time?.toDate?.() || new Date(0);
+        return timeA - timeB;
+      });
+
+      setrenderMessages(sortedMessages);
+    });
   }
-
-  const sortedMessages = filteredMessages.sort((a, b) => {
-    const timeA = a.time?.toDate?.() || new Date(0);
-    const timeB = b.time?.toDate?.() || new Date(0);
-    return timeA - timeB;
-  });
-
-  setrenderMessages(sortedMessages);
-}
-
 
   async function renderingUser() {
     const userDocs = await getDocs(collection(database, "user_database"));
@@ -109,10 +108,12 @@ function MainChat() {
       ...doc.data(),
     }));
 
-    const filteringUsers  = groups.filter(group => group.groupMembers.includes(email));
+    const filteringUsers = groups.filter((group) =>
+      group.groupMembers.includes(email)
+    );
 
     setgettingUsers(users);
-    setmigratingUser(users);
+    // setmigratingUser(users);
     setrenderingGroupDetails(filteringUsers);
   }
 
@@ -122,17 +123,8 @@ function MainChat() {
   }, [currentChatChannel, selectedUser, selectedGroup, email, receiver]);
 
   return (
-    <div className="flex">
-      <ChatSideNavbar
-        setselectedUser={setselectedUser}
-        migratingUser={migratingUser}
-        setselectedGroup={setselectedGroup}
-        currentChatChannel={currentChatChannel}
-        setcurrentChatChannel={setcurrentChatChannel}
-      />
-
-      {email ? (
-        <div className="flex flex-col w-full h-screen">
+    <div className="w-full">
+        <div className="flex flex-col h-screen">
           <div>
             {currentChatChannel === "single" &&
               gettingUsers
@@ -146,7 +138,12 @@ function MainChat() {
                     className="flex items-center justify-between p-2 border-b w-full border-gray-300"
                   >
                     <div className="flex items-center">
-                      <button className="px-1.5 sm:px-3">
+                      <button
+                        onClick={() => {
+                          sethandlingResponsive("nav");
+                        }}
+                        className="px-1.5 sm:px-3"
+                      >
                         <FaArrowLeft className="" />
                       </button>
                       <div className="flex items-center space-x-2">
@@ -200,7 +197,7 @@ function MainChat() {
                 ))}
           </div>
 
-          <div className="flex flex-col h-screen max-h-screen p-5 bg-gray-50">
+          <div className="flex-1 mb-20 overflow-y-auto p-5 bg-gray-50">
             {renderMessages.map((message) => {
               const sender =
                 currentChatChannel === "group"
@@ -210,7 +207,7 @@ function MainChat() {
               return (
                 <div
                   key={message.id}
-                  className={`flex ${
+                  className={`flex mb-5 ${
                     message.email === email ? "justify-end" : "justify-start"
                   }`}
                 >
@@ -251,7 +248,7 @@ function MainChat() {
             })}
           </div>
 
-          <div className="border-t shadow items-center space-x-2 p-4">
+          <div className="border-t shadow fixed bottom-0 w-full items-center bg-white space-x-2 p-4">
             <div className="border p-1 flex items-center border-gray-400 rounded-full">
               <input
                 value={collectingMessages}
@@ -268,27 +265,6 @@ function MainChat() {
             </div>
           </div>
         </div>
-      ) : (
-        <div className="h-screen flex items-center w-full justify-center">
-          <div>
-            <div className="flex justify-center">
-              <BiMessage
-                className="text-gray-400 flex justify-center"
-                size={100}
-              />
-            </div>
-            <p className="text-center text-3xl font-bold my-4 text-gray-400">
-              Select a chat to continue chatting
-            </p>
-            <p className="text-gray-400 w-[560px] text-justify">
-              We believe in giving you full control over your messaging
-              experience. Your login credentials, contact list, and message
-              history are protected with industry best practices. You can focus
-              on conversations while we handle the rest — securely.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

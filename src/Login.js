@@ -13,8 +13,9 @@ function Login() {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         console.log("User signed in");
-        navigate("/MainChat");
+        navigate("/Layout");
         localStorage.setItem("user", JSON.stringify(userCredential.user.email));
+        localStorage.setItem("handlingResponsive", "nav");
       })
       .catch((error) => {
         const errorCode = error.code;

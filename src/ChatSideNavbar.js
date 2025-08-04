@@ -59,8 +59,8 @@ function ChatSideNavbar({
     <div>
       <div className="p-3 border-r h-screen">
         <div className="flex items-center pb-3 justify-between border-b border-gray-300">
-          <p className="font-semibold">Welcome</p>
-          <div className="flex items-center space-x-1">
+          <p className="font-semibold text-blue-500 text-xl">Messages</p>
+          <div className="flex items-center space-x-2">
             <button
             onClick={() => {
               setopeningAdditionalBlock(!openingAdditionalBlock);
@@ -107,17 +107,22 @@ function ChatSideNavbar({
           </motion.div>
         )}
         <div>
-          <div className="flex items-center space-x-2 p-4 border-b w-full border-gray-300">
-            <FaUser className="text-[#333333]" size={30} />
-            <p className="text-[#333333]">
+          <div className="flex items-center space-x-2 p-4  w-full border-gray-300">
+            <FaUser className="text-white bg-[#333333] p-1.5 rounded-full" size={35} />
+            <div>
+              <p className="text-[#333333] font-bold">
               {findingSingleUser
                 ? findingSingleUser.user_name
                 : "Loading User...."}
             </p>
+            <p className="text-green-500 text-sm">Online</p>
+            </div>
           </div>
+
+          <input placeholder="Search Conversations...." className="w-full border border-gray-400 mb-5 rounded p-1"></input>
         </div>
-        <div>
-          <p className="font-bold text-xl text-center py-5 border-b border-gray-3">YOUR CHATS</p>
+        <div className="border-t border-gray-300">
+          <p className="font-semibold text-lg text-gray-400 py-3 ">YOUR CHATS</p>
         </div>
         <div>
           {renderingGroupDetails.map((group) => (
@@ -129,7 +134,7 @@ function ChatSideNavbar({
                 localStorage.setItem("selectedGroup", group.id);
                 sethandlingResponsive("user");
               }}
-              className="flex py-3 border-b border-gray-300 items-center justify-between"
+              className="flex py-1.5 items-center justify-between"
             >
               <p className="">{group.groupName}</p>
               <FaUsers />
@@ -140,7 +145,7 @@ function ChatSideNavbar({
             .map((user) => (
               <>
                 <div
-                  className="border-b border-gray-300 py-3"
+                  className="py-1.5"
                   onClick={() => {
                     setselectedUser(user.email);
                     setselectedGroup("");

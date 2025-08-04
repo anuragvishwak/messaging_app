@@ -18,8 +18,6 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 function MainChat({setselectedGroup, currentChatChannel, sethandlingResponsive, selectedGroup, selectedUser, setmigratingUser}) {
   const email = JSON.parse(localStorage.getItem("user"))?.trim();
   const receiver = localStorage.getItem("receiver");
-  const selectedGroupId = localStorage.getItem("selectedGroup");
-  const currentChannelFromStorage = localStorage.getItem("currentChatChannel");
   const [gettingUsers, setgettingUsers] = useState([]);
   const [collectingMessages, setcollectingMessages] = useState("");
   const [renderMessages, setrenderMessages] = useState([]);
@@ -113,7 +111,6 @@ function MainChat({setselectedGroup, currentChatChannel, sethandlingResponsive, 
     );
 
     setgettingUsers(users);
-    // setmigratingUser(users);
     setrenderingGroupDetails(filteringUsers);
   }
 

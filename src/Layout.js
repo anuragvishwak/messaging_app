@@ -34,6 +34,7 @@ function Layout() {
     fetchUsers();
   }, []);
 
+
   return (
     <div className="w-full h-screen">
       {isMobile ? (
@@ -62,7 +63,7 @@ function Layout() {
         )
       ) : (
         <div className="flex h-full">
-          <div className="w-[25%] min-w-[250px] border-r border-gray-300">
+          <div className="w-[20%] min-w-[250px] border-r border-gray-300">
             <ChatSideNavbar
               setselectedUser={setselectedUser}
               setselectedGroup={setselectedGroup}
